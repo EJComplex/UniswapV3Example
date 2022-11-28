@@ -23,8 +23,10 @@ def get_account(index=None, id=None):
     if id:
         return accounts.load(id)
 
-    if (network.show_active() in LOCAL_BLOCKCHAIN_ENVIRONMENTS
-            or network.show_active() in FORKED_LOCAL_ENVIRONMENTS):
+    if (
+        network.show_active() in LOCAL_BLOCKCHAIN_ENVIRONMENTS
+        or network.show_active() in FORKED_LOCAL_ENVIRONMENTS
+    ):
         return accounts[0]
 
     return accounts.add(config["wallets"]["from_key"])
@@ -47,6 +49,32 @@ def get_ABI(token_name):
 
 
 def printParameters(token1, token2, AMOUNT_IN):
-    print("\n" + "Swap Parameters:" + "\n" + "Token In: " + token1 + "\n" +
-          "Token Out: " + token2 + "\n" + "Amount In: " +
-          str(web3.fromWei(AMOUNT_IN, "ether")) + "\n")
+    print(
+        "\n"
+        + "Swap Parameters:"
+        + "\n"
+        + "Token In: "
+        + token1
+        + "\n"
+        + "Token Out: "
+        + token2
+        + "\n"
+        + "Amount In: "
+        + str(web3.fromWei(AMOUNT_IN, "ether"))
+        + "\n"
+    )
+
+
+def approve(token, spender_address, wallet_address, private_key):
+
+    spender = spender_address
+    max_amount = web3.toWei(2**64 - 1, "ether")
+    nonce = web3.eth.getTransactionCount(wallet_address)
+
+    tx = token.approve(spender, max_amount, {"from": wallet_address, "nonce": nonce})
+    # .buildTransaction({"from": wallet_address, "nonce": nonce})
+
+    signed_tx = web3.eth.account.signTransaction(tx, private_key)
+    tx_hash = web3.eth.sendRawTransaction(signed_tx.rawTransaction)
+
+    return web3.toHex(tx_hash)
