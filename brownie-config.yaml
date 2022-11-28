@@ -1,0 +1,22 @@
+dependencies:
+  # - <organization/repo>@<version>
+  - OpenZeppelin/openzeppelin-contracts@4.2.0
+  - Uniswap/v2-periphery@1.0.0-beta.0
+compiler:
+  solc:
+    remappings:
+      - '@openzeppelin=OpenZeppelin/openzeppelin-contracts@4.2.0'
+      - '@uniswap=Uniswap/v2-periphery@1.0.0-beta.0'
+dotenv: .env
+networks:
+  default: development
+  mainnet-fork:
+    uniswap_router_v2: '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D'
+    weth: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2'
+    dai: '0x6B175474E89094C44Da98b954EedeAC495271d0F'
+  goerli:
+    uniswap_router_v2: '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D'
+    weth: '0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6'
+    dai: '0xdc31Ee1784292379Fbb2964b3B9C4124D8F89C60'
+wallets:
+  from_key: ${PRIVATE_KEY}
