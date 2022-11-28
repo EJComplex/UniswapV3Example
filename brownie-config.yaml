@@ -2,11 +2,15 @@ dependencies:
   # - <organization/repo>@<version>
   - OpenZeppelin/openzeppelin-contracts@4.2.0
   - Uniswap/v2-periphery@1.0.0-beta.0
+  - Uniswap/v3-periphery@1.3.0
+  - Uniswap/v3-core@1.0.0
 compiler:
   solc:
     remappings:
       - '@openzeppelin=OpenZeppelin/openzeppelin-contracts@4.2.0'
-      - '@uniswap=Uniswap/v2-periphery@1.0.0-beta.0'
+      - '@uniswapv2=Uniswap/v2-periphery@1.0.0-beta.0'
+      - '@uniswapv3=Uniswap/v3-periphery@1.3.0'
+      - '@uniswap/v3-core=Uniswap/v3-core@1.0.0'
 dotenv: .env
 networks:
   default: development
