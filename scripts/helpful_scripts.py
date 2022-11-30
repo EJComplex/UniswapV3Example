@@ -2,6 +2,7 @@ from unicodedata import decimal
 import os
 import json
 from brownie import accounts, network, config, web3
+import time
 
 # FORKED_LOCAL_ENVIRONMENTS = ["mainnet-fork", "mainnet-fork-dev"]
 # new comment
@@ -71,8 +72,29 @@ def approve(token, spender_address, wallet_address, private_key):
     max_amount = web3.toWei(2**64 - 1, "ether")
     nonce = web3.eth.getTransactionCount(wallet_address)
 
-    tx = token.approve(spender, max_amount, {"from": wallet_address, "nonce": nonce})
+    tx = token.approve(spender, max_amount, {"from": wallet_address})
+    tx.wait(1)
+
     # .buildTransaction({"from": wallet_address, "nonce": nonce})
+
+    # signed_tx = web3.eth.account.signTransaction(tx, private_key)
+    # tx_hash = web3.eth.sendRawTransaction(signed_tx.rawTransaction)
+    # time.sleep(1)
+    # tx_approve = token.events.Approval.createFilter(fromBlock="latest")
+
+    # return web3.toHex(tx_hash)
+    return tx
+
+
+def approveWeb3Method(token, spender_address, wallet_address, private_key):
+
+    spender = spender_address
+    max_amount = web3.toWei(2**64 - 1, "ether")
+    nonce = web3.eth.getTransactionCount(wallet_address)
+
+    tx = token.functions.approve(spender, max_amount).buildTransaction(
+        {"from": wallet_address, "nonce": nonce}
+    )
 
     signed_tx = web3.eth.account.signTransaction(tx, private_key)
     tx_hash = web3.eth.sendRawTransaction(signed_tx.rawTransaction)

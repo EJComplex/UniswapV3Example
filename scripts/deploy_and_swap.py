@@ -24,4 +24,6 @@ def main():
     swapContract = deploy(swapRouter)
     DAI = interface.IERC20("0x6B175474E89094C44Da98b954EedeAC495271d0F")
     # print(config["wallets"]["from_key"])
-    approve(DAI, swapContract.address, account.address, config["wallets"]["from_key"])
+    tx = approve(
+        DAI, swapContract.address, account.address, config["wallets"]["from_key"]
+    )
