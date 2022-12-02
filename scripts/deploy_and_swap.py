@@ -5,7 +5,7 @@ from scripts.helpful_scripts import (
     printParameters,
     approve,
 )
-from brownie import UniswapV3Swap, web3, interface, config
+from brownie import UniswapV3Swap, web3, interface, config, chain, history
 
 import time
 from web3 import Web3
@@ -27,3 +27,7 @@ def main():
     tx = approve(
         DAI, swapContract.address, account.address, config["wallets"]["from_key"]
     )
+
+    print(swapContract.tx.info())
+    print(tx.info())
+    print(type(tx.info))
