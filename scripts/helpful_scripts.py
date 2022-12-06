@@ -13,7 +13,7 @@ TESTNET_ENVIRONMENTS = ["goerli"]
 token_dict = {"dai": "DAI_ABI.json"}
 
 
-def get_account(index=None, id=None):
+def get_account(index=None, id=None, unlock_index=None):
     # accounts[0]
     # accounts.add("env")
     # accounts.load("id")
@@ -23,6 +23,14 @@ def get_account(index=None, id=None):
 
     if id:
         return accounts.load(id)
+
+    if unlock_index:
+        account = accounts.at(
+            config["networks"][network.show_active()]["cmd_settings"]["unlock"][
+                unlock_index
+            ]
+        )
+        return account
 
     if (
         network.show_active() in LOCAL_BLOCKCHAIN_ENVIRONMENTS
