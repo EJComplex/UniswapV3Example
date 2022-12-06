@@ -65,7 +65,8 @@ def deploy(swapRouter):
 
 
 # @printTxInfo
-@balanceIs(get_account(index=-2), "dai")
+@balanceIs(get_account(index=-2), token="dai")
+@balanceIs(get_account(index=-2), token="weth")
 def swap(swapContract, amountIn):
     account = get_account(index=-2)
     tx = swapContract.swapExactInputSingle(amountIn, {"from": account})
@@ -91,7 +92,4 @@ def main():
     amountIn = 665692897436421072274
     approveToken(DAI, swapContract.address, amountIn)
 
-    # print(Web3.fromWei(DAI.balanceOf(account.address), "ether"))
     swap(swapContract, amountIn)
-    # print(Web3.fromWei(DAI.balanceOf(account.address), "ether"))
-    # print(Web3.fromWei(account.balance(), "ether"))
