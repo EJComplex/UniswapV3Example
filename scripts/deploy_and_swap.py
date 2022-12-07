@@ -10,7 +10,7 @@ from brownie import UniswapV3Swap, interface, accounts, network, config
 import time
 from web3 import Web3
 
-
+# Decorator to print tx.info() after transaction
 def printTxInfo(func):
     def wrap(*args, **kwargs):
         result = func(*args, **kwargs)
@@ -26,6 +26,8 @@ def printTxInfo(func):
     return wrap
 
 
+# Decorator to print balance before and after transaction.
+# ETH by default, token if given.
 def balanceIs(account, token=None):
     def balanceIsInner(func):
         def wrap(*args, **kwargs):
@@ -56,6 +58,7 @@ def balanceIs(account, token=None):
     return balanceIsInner
 
 
+# Deploy swap contract
 # @printTxInfo
 def deploy(swapRouter):
     account = get_account(index=-2)
@@ -64,6 +67,7 @@ def deploy(swapRouter):
     return swapContract
 
 
+# Perform swap
 # @printTxInfo
 @balanceIs(get_account(index=-2), token="dai")
 @balanceIs(get_account(index=-2), token="weth")
@@ -74,6 +78,7 @@ def swap(swapContract, amountIn):
     return tx
 
 
+# Approve token
 # @printTxInfo
 def approveToken(tokenAddress, approveAddress, amount):
     account = get_account(index=-2)
@@ -83,13 +88,18 @@ def approveToken(tokenAddress, approveAddress, amount):
 
 
 def main():
+    # Select account
     account = get_account(index=-2)
 
+    # Define router contract and amountIn
     swapRouter = "0xE592427A0AEce92De3Edee1F18E0157C05861564"
     swapContract = deploy(swapRouter)
-
-    DAI = "0x6B175474E89094C44Da98b954EedeAC495271d0F"
     amountIn = 665692897436421072274
-    approveToken(DAI, swapContract.address, amountIn)
 
+    # Call approve token function
+    approveToken(
+        config["networks"][network.show_active()]["dai"], swapContract.address, amountIn
+    )
+
+    # Call swap function
     swap(swapContract, amountIn)
