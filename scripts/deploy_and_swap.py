@@ -71,9 +71,11 @@ def deploy(swapRouter):
 # @printTxInfo
 @balanceIs(get_account(index=-2), token="dai")
 @balanceIs(get_account(index=-2), token="weth")
-def swap(swapContract, amountIn):
+def swap(swapContract, tokenIn, tokenOut, amountIn):
     account = get_account(index=-2)
-    tx = swapContract.swapExactInputSingle(amountIn, {"from": account})
+    tx = swapContract.swapExactInputSingle(
+        tokenIn, tokenOut, amountIn, {"from": account}
+    )
     tx.wait(1)
     return tx
 
@@ -92,14 +94,16 @@ def main():
     account = get_account(index=-2)
 
     # Define router contract and amountIn
-    swapRouter = "0xE592427A0AEce92De3Edee1F18E0157C05861564"
+    DAI = config["networks"][network.show_active()]["dai"]
+    WETH = config["networks"][network.show_active()]["weth"]
+    USDC = config["networks"][network.show_active()]["usdc"]
+
+    swapRouter = config["networks"][network.show_active()]["uniswap_router_v3"]
     swapContract = deploy(swapRouter)
     amountIn = 665692897436421072274
 
     # Call approve token function
-    approveToken(
-        config["networks"][network.show_active()]["dai"], swapContract.address, amountIn
-    )
+    approveToken(DAI, swapContract.address, amountIn)
 
     # Call swap function
-    swap(swapContract, amountIn)
+    swap(swapContract, DAI, WETH, amountIn)
