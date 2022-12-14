@@ -1,14 +1,10 @@
-from scripts.helpful_scripts import (
-    get_account,
-    get_contract_address,
-    get_ABI,
-    printParameters,
-    approve,
-)
-from brownie import UniswapV3Swap, interface, accounts, network, config
+from scripts.helpful_scripts import get_account
+from brownie import UniswapV3Swap, UniswapV3MultiSwap, interface, network, config
 
 import time
 from web3 import Web3
+import pandas as pd
+import numpy as np
 
 # Decorator to print tx.info() after transaction
 def printTxInfo(func):
@@ -60,9 +56,9 @@ def balanceIs(account, token=None):
 
 # Deploy swap contract
 # @printTxInfo
-def deploy(swapRouter):
+def deploy(contract, swapRouter):
     account = get_account(index=-2)
-    swapContract = UniswapV3Swap.deploy(swapRouter, {"from": account})
+    swapContract = contract.deploy(swapRouter, {"from": account})
     time.sleep(1)
     return swapContract
 
@@ -71,10 +67,23 @@ def deploy(swapRouter):
 # @printTxInfo
 @balanceIs(get_account(index=-2), token="dai")
 @balanceIs(get_account(index=-2), token="weth")
-def swap(swapContract, tokenIn, tokenOut, amountIn):
+def singleSwap(swapContract, tokenIn, tokenOut, amountIn):
     account = get_account(index=-2)
     tx = swapContract.swapExactInputSingle(
         tokenIn, tokenOut, amountIn, {"from": account}
+    )
+    tx.wait(1)
+    return tx
+
+
+# Perform swap
+# @printTxInfo
+@balanceIs(get_account(index=-2), token="dai")
+@balanceIs(get_account(index=-2), token="weth")
+def multiSwap(swapContract, tokenIn, tokenMid, tokenOut, amountIn):
+    account = get_account(index=-2)
+    tx = swapContract.swapExactInputMultihop(
+        tokenIn, tokenMid, tokenOut, amountIn, {"from": account}
     )
     tx.wait(1)
     return tx
@@ -89,7 +98,7 @@ def approveToken(tokenAddress, approveAddress, amount):
     return tx
 
 
-def main():
+def multiTest():
     # Select account
     account = get_account(index=-2)
 
@@ -99,11 +108,103 @@ def main():
     USDC = config["networks"][network.show_active()]["usdc"]
 
     swapRouter = config["networks"][network.show_active()]["uniswap_router_v3"]
-    swapContract = deploy(swapRouter)
-    amountIn = 665692897436421072274
+    swapContract = deploy(UniswapV3MultiSwap, swapRouter)
+    # amountIn = 300692897436421072274
 
     # Call approve token function
-    approveToken(DAI, swapContract.address, amountIn)
+    max_amount = Web3.toWei(2**64 - 1, "ether")
+    approveToken(DAI, swapContract.address, max_amount)
 
     # Call swap function
-    swap(swapContract, DAI, WETH, amountIn)
+    token_contract = interface.IERC20(WETH)
+    outputList = []
+    for i in range(1, 11):
+        amountIn = i * Web3.toWei(100, "ether")
+        # amountIn = 100692897436421072274
+
+        tx = multiSwap(swapContract, DAI, USDC, WETH, amountIn), "ether"
+        outputList.append(
+            float(Web3.fromWei(token_contract.balanceOf(account.address), "ether"))
+        )
+
+    return outputList
+
+
+def singleTest():
+    # Select account
+    account = get_account(index=-2)
+
+    # Define router contract and amountIn
+    DAI = config["networks"][network.show_active()]["dai"]
+    WETH = config["networks"][network.show_active()]["weth"]
+    USDC = config["networks"][network.show_active()]["usdc"]
+
+    swapRouter = config["networks"][network.show_active()]["uniswap_router_v3"]
+    swapContract = deploy(UniswapV3Swap, swapRouter)
+    # amountIn = 300692897436421072274
+
+    # Call approve token function
+    max_amount = Web3.toWei(2**64 - 1, "ether")
+    approveToken(DAI, swapContract.address, max_amount)
+
+    # Call swap function
+    token_contract = interface.IERC20(WETH)
+    outputList = []
+    for i in range(1, 11):
+        amountIn = i * Web3.toWei(100, "ether")
+        # amountIn = 100692897436421072274
+
+        tx = singleSwap(swapContract, DAI, WETH, amountIn), "ether"
+        outputList.append(
+            float(Web3.fromWei(token_contract.balanceOf(account.address), "ether"))
+        )
+
+    return outputList
+
+
+def main():
+    output = singleTest()
+
+    df = pd.DataFrame()
+    df["Ether"] = output.copy()
+    df.to_csv(r"output\SingleEtherBalances.csv")
+
+    # Select single or multi
+    multi = True
+
+    # if multi:
+    #     # Select account
+    #     account = get_account(index=-2)
+
+    #     # Define router contract and amountIn
+    #     DAI = config["networks"][network.show_active()]["dai"]
+    #     WETH = config["networks"][network.show_active()]["weth"]
+    #     USDC = config["networks"][network.show_active()]["usdc"]
+
+    #     swapRouter = config["networks"][network.show_active()]["uniswap_router_v3"]
+    #     swapContract = deploy(UniswapV3MultiSwap, swapRouter)
+    #     amountIn = 300692897436421072274
+
+    #     # Call approve token function
+    #     approveToken(DAI, swapContract.address, amountIn)
+
+    #     # Call swap function
+    #     multiSwap(swapContract, DAI, USDC, WETH, amountIn)
+    # else:
+    #     # Select account
+    #     account = get_account(index=-2)
+
+    #     # Define router contract and amountIn
+    #     DAI = config["networks"][network.show_active()]["dai"]
+    #     WETH = config["networks"][network.show_active()]["weth"]
+    #     USDC = config["networks"][network.show_active()]["usdc"]
+
+    #     swapRouter = config["networks"][network.show_active()]["uniswap_router_v3"]
+    #     swapContract = deploy(UniswapV3Swap, swapRouter)
+    #     amountIn = 200692897436421072274
+
+    #     # Call approve token function
+    #     approveToken(DAI, swapContract.address, amountIn)
+
+    #     # Call swap function
+    #     singleSwap(swapContract, DAI, WETH, amountIn)
