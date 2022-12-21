@@ -1,5 +1,12 @@
 from scripts.helpful_scripts import get_account
-from brownie import UniswapV3Swap, UniswapV3MultiSwap, interface, network, config
+from brownie import (
+    UniswapV3Swap,
+    UniswapV3MultiSwap,
+    interface,
+    network,
+    config,
+    UniswapV2Swap,
+)
 
 import time
 from web3 import Web3
@@ -72,6 +79,13 @@ def singleSwap(swapContract, tokenIn, tokenOut, amountIn):
     tx = swapContract.swapExactInputSingle(
         tokenIn, tokenOut, amountIn, {"from": account}
     )
+    tx.wait(1)
+    return tx
+
+
+def singleSwapV2(swapContract, tokenIn, tokenOut, amountIn):
+    account = get_account(index=-2)
+    tx = swapContract.swap(tokenIn, tokenOut, amountIn, 100, account.address)
     tx.wait(1)
     return tx
 
@@ -150,20 +164,68 @@ def singleTest():
     # Call swap function
     token_contract = interface.IERC20(WETH)
     outputList = []
+    starting_balance = float(
+        Web3.fromWei(token_contract.balanceOf(account.address), "ether")
+    )
     for i in range(1, 11):
         amountIn = i * Web3.toWei(100, "ether")
         # amountIn = 100692897436421072274
 
-        tx = singleSwap(swapContract, DAI, WETH, amountIn), "ether"
+        tx = singleSwapV2(swapContract, DAI, token_contract, amountIn)
         outputList.append(
             float(Web3.fromWei(token_contract.balanceOf(account.address), "ether"))
+            - starting_balance
+        )
+
+    return outputList
+
+
+def transferToken(token, contractAddress, amount):
+    account = get_account(index=-2)
+    tx = interface.IERC20(token).transfer(contractAddress, amount, {"from": account})
+    tx.wait(1)
+    return tx
+
+
+def v2SingleTest():
+    # Select account
+    account = get_account(index=-2)
+
+    # Define router contract and amountIn
+    DAI = config["networks"][network.show_active()]["dai"]
+    WETH = config["networks"][network.show_active()]["weth"]
+    USDC = config["networks"][network.show_active()]["usdc"]
+
+    swapRouter = config["networks"][network.show_active()]["uniswap_router_v2"]
+    swapContract = deploy(UniswapV2Swap, swapRouter)
+
+    max_amount = Web3.toWei(2**64 - 1, "ether")
+    approveToken(DAI, swapContract.address, max_amount)
+
+    # Call swap function
+    token_contract = interface.IERC20(USDC)
+    outputList = []
+    starting_balance = float(
+        Web3.fromWei(token_contract.balanceOf(account.address), "mwei")
+    )
+    for i in range(1, 11):
+        amountIn = i * Web3.toWei(100, "ether")
+        # amountIn = 100692897436421072274
+        tx1 = transferToken(DAI, swapContract.address, amountIn)
+
+        tx2 = singleSwapV2(swapContract, DAI, token_contract, amountIn)
+        outputList.append(
+            float(Web3.fromWei(token_contract.balanceOf(account.address), "mwei"))
+            - starting_balance
         )
 
     return outputList
 
 
 def main():
-    output = singleTest()
+    # output = singleTest()
+
+    output = v2SingleTest()
 
     df = pd.DataFrame()
     df["Ether"] = output.copy()
