@@ -30,6 +30,7 @@ for sheet in dai_usdc:
     )
 
     fig.write_html(r"./output/dai_usdc.html")
+    fig.write_image(r"./output/dai_usdc.png")
 
 fig = make_subplots(rows=1, cols=1, specs=[[{"secondary_y": True}]])
 for sheet in dai_weth:
@@ -53,7 +54,7 @@ for sheet in dai_weth:
     )
 
     fig.write_html(r"./output/dai_weth.html")
-
+    fig.write_image(r"./output/dai_weth.png")
 
 # for sheet in wb.sheetnames:
 
