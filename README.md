@@ -2,4 +2,4 @@
 
 # UniswapV3 Pool Fee Analysis
 
-    ![DAI-USDC Pool Fee Graph](./output/dai_usdc.png)
+![DAI-USDC Pool Fee Graph](./output/dai_usdc.png)
