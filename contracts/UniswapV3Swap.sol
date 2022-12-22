@@ -21,7 +21,7 @@ contract UniswapV3Swap {
     address public constant USDC = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
 
     // For this example, we will set the pool fee to 0.3%.
-    uint24 public constant poolFee = 3000;
+    uint24 public constant oldPoolFee = 100;
 
     constructor(ISwapRouter _swapRouter) {
         swapRouter = _swapRouter;
@@ -33,7 +33,7 @@ contract UniswapV3Swap {
     /// @param amountIn The exact amount of DAI that will be swapped for WETH9.
     /// @return amountOut The amount of WETH9 received.
 
-    function swapExactInputSingle(address tokenIn, address tokenOut, uint256 amountIn) external returns (uint256 amountOut) {
+    function swapExactInputSingle(address tokenIn, address tokenOut, uint256 amountIn, uint24 poolFee) external returns (uint256 amountOut) {
         // msg.sender must approve this contract
         
 
@@ -79,7 +79,7 @@ contract UniswapV3Swap {
                 ISwapRouter.ExactOutputSingleParams({
                     tokenIn: DAI,
                     tokenOut: WETH9,
-                    fee: poolFee,
+                    fee: oldPoolFee,
                     recipient: msg.sender,
                     deadline: block.timestamp,
                     amountOut: amountOut,

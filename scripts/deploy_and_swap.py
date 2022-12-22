@@ -74,10 +74,10 @@ def deploy(contract, swapRouter):
 # @printTxInfo
 @balanceIs(get_account(index=-2), token="dai")
 @balanceIs(get_account(index=-2), token="weth")
-def singleSwap(swapContract, tokenIn, tokenOut, amountIn):
+def singleSwap(swapContract, tokenIn, tokenOut, amountIn, poolFee):
     account = get_account(index=-2)
     tx = swapContract.swapExactInputSingle(
-        tokenIn, tokenOut, amountIn, {"from": account}
+        tokenIn, tokenOut, amountIn, poolFee, {"from": account}
     )
     tx.wait(1)
     return tx
@@ -144,36 +144,52 @@ def multiTest():
     return outputList
 
 
-def singleTest():
+def singleTest(_tokenOut, _tokenIn, _unitsOut, _unitsIn, _poolFee):
     # Select account
     account = get_account(index=-2)
 
     # Define router contract and amountIn
-    DAI = config["networks"][network.show_active()]["dai"]
-    WETH = config["networks"][network.show_active()]["weth"]
-    USDC = config["networks"][network.show_active()]["usdc"]
+    # DAI = config["networks"][network.show_active()]["dai"]
+    # WETH = config["networks"][network.show_active()]["weth"]
+    # USDC = config["networks"][network.show_active()]["usdc"]
 
     swapRouter = config["networks"][network.show_active()]["uniswap_router_v3"]
     swapContract = deploy(UniswapV3Swap, swapRouter)
     # amountIn = 300692897436421072274
 
+    # define inputs
+    tokenOut = config["networks"][network.show_active()][_tokenOut]
+    tokenIn = config["networks"][network.show_active()][_tokenIn]
+    unitsOut = _unitsOut
+    unitsIn = _unitsIn
+    poolFee = _poolFee
+
+    # Get pool
+    # feeList = [3000, 500, 100]
+    # for fee in feeList:
+    #     # fee = 50
+    #     factory = config["networks"][network.show_active()]["uniswap_factory_v3"]
+    #     pool = interface.IUniswapV3Factory(factory).getPool(tokenIn, tokenOut, fee)
+    #     print("Pool Fee = " + str(fee) + "\n")
+    #     print("Pool = " + str(pool))
+
     # Call approve token function
     max_amount = Web3.toWei(2**64 - 1, "ether")
-    approveToken(DAI, swapContract.address, max_amount)
+    approveToken(tokenIn, swapContract.address, max_amount)
 
     # Call swap function
-    token_contract = interface.IERC20(WETH)
+    token_contract = interface.IERC20(tokenOut)
     outputList = []
     starting_balance = float(
-        Web3.fromWei(token_contract.balanceOf(account.address), "ether")
+        Web3.fromWei(token_contract.balanceOf(account.address), unitsOut)
     )
     for i in range(1, 11):
-        amountIn = i * Web3.toWei(100, "ether")
+        amountIn = i * Web3.toWei(100, unitsIn)
         # amountIn = 100692897436421072274
 
-        tx = singleSwapV2(swapContract, DAI, token_contract, amountIn)
+        tx = singleSwap(swapContract, tokenIn, token_contract, amountIn, poolFee)
         outputList.append(
-            float(Web3.fromWei(token_contract.balanceOf(account.address), "ether"))
+            float(Web3.fromWei(token_contract.balanceOf(account.address), unitsOut))
             - starting_balance
         )
 
@@ -223,9 +239,9 @@ def v2SingleTest():
 
 
 def main():
-    # output = singleTest()
+    output = singleTest("usdc", "dai", "mwei", "ether", 100)
 
-    output = v2SingleTest()
+    # output = v2SingleTest()
 
     df = pd.DataFrame()
     df["Ether"] = output.copy()

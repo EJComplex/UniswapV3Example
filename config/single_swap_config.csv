@@ -1,0 +1,7 @@
+﻿Pool Fee,Token In,Token Out,Token In Units,Token Out Units
+3000,dai,usdc,ether,mwei
+500,dai,usdc,ether,mwei
+100,dai,usdc,ether,mwei
+3000,dai ,weth,ether,ether
+500,dai ,weth,ether,ether
+100,dai ,weth,ether,ether
