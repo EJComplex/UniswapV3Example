@@ -24,7 +24,7 @@ for sheet in dai_usdc:
     )
 
     fig.update_layout(
-        title="Effects of Uniswap Pool Fee Selection",
+        title="DAI-USDC UniswapV3 Pool Fee Comparison",
         xaxis_title="Dai Quantity In",
         yaxis_title="Implied USDC Value ($)",
     )
@@ -48,7 +48,7 @@ for sheet in dai_weth:
     )
 
     fig.update_layout(
-        title="Effects of Uniswap Pool Fee Selection",
+        title="DAI-WETH UniswapV3 Pool Fee Comparison",
         xaxis_title="Dai Quantity In",
         yaxis_title="Implied Weth Value($)",
     )
